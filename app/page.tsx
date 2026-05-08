@@ -11,7 +11,6 @@ import {
   Clock,
   Folder,
   RotateCcw,
-  ChevronRight,
   AlertTriangle,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -26,11 +25,7 @@ export default function Home() {
     mounted,
     completedCount,
     percentage,
-    isLessonCompleted,
-    isModuleExpanded,
     getModuleProgress,
-    toggleLesson,
-    toggleModule,
     resetProgress,
   } = useProgress(TOTAL_LESSONS);
 
@@ -47,7 +42,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', width: '100%' }}>
 
       {/* ── Hero Section ──────────────────────────────────── */}
       <section
@@ -81,7 +76,7 @@ export default function Home() {
         />
 
         {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 flex flex-col items-start">
+        <div className="relative z-10 max-w-3xl mx-auto px-6 py-16 flex flex-col items-start">
           {/* Badge */}
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 font-mono text-xs tracking-widest"
@@ -151,7 +146,7 @@ export default function Home() {
       </section>
 
       {/* ── Main Content ──────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-6 pb-20">
+      <div className="max-w-3xl mx-auto px-6 pb-20">
 
         {/* ── Overall Progress Card ── */}
         <section
@@ -294,7 +289,7 @@ export default function Home() {
             className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5"
             style={{ background: 'rgba(99,102,241,0.15)' }}
           >
-            <ChevronRight size={14} style={{ color: '#818cf8' }} />
+            <span style={{ color: '#818cf8', fontSize: 14, fontWeight: 700 }}>›</span>
           </div>
           <div>
             <p className="text-sm font-semibold mb-0.5" style={{ color: '#c7d2fe' }}>Pré-requisitos</p>
@@ -316,11 +311,7 @@ export default function Home() {
                 key={mod.num}
                 module={mod}
                 moduleIdx={i}
-                isExpanded={isModuleExpanded(i)}
                 progress={getModuleProgress(i, mod.lessons.length)}
-                isLessonCompleted={isLessonCompleted}
-                onToggleModule={() => toggleModule(i)}
-                onToggleLesson={toggleLesson}
                 mounted={mounted}
               />
             ))}

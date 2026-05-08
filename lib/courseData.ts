@@ -101,40 +101,6 @@ export const MODULES: Module[] = [
       { name: "Damping e resistência do ar", detail: "linearDamping, angularDamping, sleep" },
       { name: "Materiais físicos: fricção e restituição", detail: "ContactMaterial, friction, restitution — bola quicando" },
     ]
-  },
-  {
-    num: "07",
-    title: "Shaders e GLSL",
-    desc: "O nível mais baixo — programando a GPU diretamente",
-    level: "advanced",
-    accentColor: "#22d3ee",
-    lessons: [
-      { name: "O que é GLSL e como funciona o pipeline de shaders", detail: "Vertex shader vs fragment shader, tipos (float, vec2, vec3...)" },
-      { name: "ShaderMaterial e RawShaderMaterial no Three.js", detail: "uniforms, attributes, varyings — passando dados para a GPU" },
-      { name: "9 exemplos práticos de GLSL para iniciantes", detail: "Gradientes, noise, distorção UV, deslocamento de vértices..." },
-      { name: "Estendendo materiais nativos do Three.js", detail: "onBeforeCompile, injeção em MeshStandardMaterial" },
-      { name: "Visualizador de áudio 3D com shaders", detail: "AnalyserNode, FFT, uniforms animados" },
-      { name: "Unreal Bloom seletivo via post-processing", detail: "EffectComposer, UnrealBloomPass, layers para selecionar objetos" },
-      { name: "Post-processing: o que é e como usar", detail: "RenderPass, ShaderPass, pipeline de passes" },
-    ]
-  },
-  {
-    num: "08",
-    title: "Performance e Técnicas Avançadas",
-    desc: "Escalando suas cenas para produção",
-    level: "advanced",
-    accentColor: "#a855f7",
-    lessons: [
-      { name: "Instanced Rendering com InstancedMesh", detail: "Renderizar milhares de objetos idênticos com 1 draw call" },
-      { name: "BatchedMesh para alta performance", detail: "Meshes distintas em batch único — r155+, quando usar" },
-      { name: "LOD (Level of Detail)", detail: "LOD class, addLevel(), distância de câmera, geometrias simplificadas" },
-      { name: "Oclusão de objetos (Object Occlusion)", detail: "Visibilidade baseada em geometria — efeitos visuais criativos" },
-      { name: "Minimapa para apps e jogos 3D", detail: "Segunda câmera ortográfica, segundo canvas, GLSL customizado" },
-      { name: "Loading screen para apps Three.js", detail: "LoadingManager, progress callback, tela de loading animada" },
-      { name: "Integrando HTML na cena 3D", detail: "CSS2DRenderer, CSS2DObject — labels e UI em world space" },
-      { name: "Layers: gerenciando visibilidade de objetos", detail: "camera.layers, object.layers — renderização seletiva" },
-      { name: "Deploy no GitHub Pages", detail: "Build com Vite, base path, gh-pages branch" },
-    ]
   }
 ];
 

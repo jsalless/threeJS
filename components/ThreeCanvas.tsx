@@ -124,11 +124,12 @@ export default function ThreeCanvas() {
       window.addEventListener('resize', onResize);
 
       // ── Animation loop ─────────────────────────────────────────────
-      const clock = new THREE.Clock();
+      const timer = new THREE.Timer();
 
       function animate() {
         animId = requestAnimationFrame(animate);
-        const t = clock.getElapsedTime();
+        timer.update();
+        const t = timer.getElapsed();
 
         // Rotate particles
         particles.rotation.y = t * 0.015;
