@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import type * as THREE_TYPE from 'three';
 
 export default function ThreeCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,7 +80,7 @@ export default function ThreeCanvas() {
       ];
 
       const meshGroup = new THREE.Group();
-      const meshes: THREE.Mesh[] = [];
+      const meshes: THREE_TYPE.Mesh[] = [];
 
       const positions3D = [
         [-2.8, 1.2, -1], [2.5, -0.8, -0.5],

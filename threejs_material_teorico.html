@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three.js — Material Teórico Completo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0F11;
+    --surface: #16181C;
+    --surface2: #1E2128;
+    --border: #2A2D35;
+    --accent: #3DFFE4;
+    --accent2: #FF6B35;
+    --accent3: #A78BFA;
+    --text: #E8EAF0;
+    --muted: #6B7280;
+    --beginner: #4ADE80;
+    --intermediate: #FBBF24;
+    --advanced: #F87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* LAYOUT */
+  .shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 280px;
+    overflow-y: auto;
+    padding: 28px 0;
+    z-index: 10;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .logo-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    background: rgba(61,255,228,0.08);
+    border: 1px solid rgba(61,255,228,0.2);
+    padding: 4px 10px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .logo-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .nav-section {
+    padding: 0 12px;
+    margin-bottom: 4px;
+  }
+
+  .nav-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 8px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 1px;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(61,255,228,0.08); color: var(--accent); }
+
+  .nav-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+
+  .nav-item.active .nav-num { background: rgba(61,255,228,0.15); color: var(--accent); }
+
+  /* MAIN CONTENT */
+  .main {
+    margin-left: 280px;
+    padding: 0;
+  }
+
+  .module-section {
+    display: none;
+    padding: 48px 56px;
+    max-width: 860px;
+  }
+
+  .module-section.visible { display: block; }
+
+  /* MODULE HEADER */
+  .mod-header {
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mod-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .mod-num-big {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .level-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .level-tag.beginner { background: rgba(74,222,128,0.1); color: var(--beginner); border: 1px solid rgba(74,222,128,0.2); }
+  .level-tag.intermediate { background: rgba(251,191,36,0.1); color: var(--intermediate); border: 1px solid rgba(251,191,36,0.2); }
+  .level-tag.advanced { background: rgba(248,113,113,0.1); color: var(--advanced); border: 1px solid rgba(248,113,113,0.2); }
+
+  .mod-title {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .mod-intro {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 640px;
+  }
+
+  /* CONTENT BLOCKS */
+  .content-block {
+    margin-bottom: 36px;
+  }
+
+  .block-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .block-title::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .block-text {
+    font-size: 14.5px;
+    color: #C5C9D6;
+    line-height: 1.8;
+    margin-bottom: 14px;
+  }
+
+  .block-text strong { color: var(--text); font-weight: 600; }
+
+  /* CONCEPT TABLE */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .concept-card:hover { border-color: rgba(61,255,228,0.3); }
+
+  .concept-card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .concept-card-text {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: #0A0B0D;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 18px 0;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .code-dots { display: flex; gap: 5px; }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot:nth-child(1) { background: #FF5F57; }
+  .code-dot:nth-child(2) { background: #FEBC2E; }
+  .code-dot:nth-child(3) { background: #28C840; }
+
+  .code-content {
+    padding: 18px 20px;
+    font-size: 12.5px;
+    line-height: 1.8;
+    overflow-x: auto;
+    color: #ABB2BF;
+  }
+
+  .c-kw { color: #C678DD; }
+  .c-fn { color: #61AFEF; }
+  .c-str { color: #98C379; }
+  .c-num { color: #D19A66; }
+  .c-cm { color: #5C6370; font-style: italic; }
+  .c-obj { color: #E5C07B; }
+  .c-acc { color: var(--accent); }
+
+  /* CALLOUT */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 18px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .callout.info {
+    background: rgba(61,255,228,0.05);
+    border: 1px solid rgba(61,255,228,0.15);
+  }
+
+  .callout.warn {
+    background: rgba(251,191,36,0.05);
+    border: 1px solid rgba(251,191,36,0.15);
+  }
+
+  .callout.tip {
+    background: rgba(167,139,250,0.05);
+    border: 1px solid rgba(167,139,250,0.15);
+  }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.info .callout-icon { color: var(--accent); }
+  .callout.warn .callout-icon { color: var(--intermediate); }
+  .callout.tip .callout-icon { color: var(--accent3); }
+
+  .callout-text { font-size: 13.5px; line-height: 1.7; color: #C5C9D6; }
+  .callout-text strong { color: var(--text); }
+
+  /* EXERCISES */
+  .exercises-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 40px;
+  }
+
+  .exercises-header {
+    background: linear-gradient(135deg, rgba(61,255,228,0.08), rgba(167,139,250,0.08));
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .exercises-icon {
+    width: 40px; height: 40px;
+    background: rgba(61,255,228,0.1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    border: 1px solid rgba(61,255,228,0.2);
+  }
+
+  .exercises-label {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .exercises-sublabel {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .exercise-item {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .exercise-item:last-child { border-bottom: none; }
+
+  .exercise-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--border);
+    padding-top: 2px;
+    line-height: 1;
+  }
+
+  .exercise-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .exercise-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .exercise-tasks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .exercise-tasks li {
+    font-size: 12.5px;
+    color: #9CA3AF;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.6;
+  }
+
+  .task-check {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .task-check.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    font-size: 10px;
+  }
+
+  .exercise-diff {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .diff-easy { background: rgba(74,222,128,0.1); color: var(--beginner); border: 1px solid rgba(74,222,128,0.2); }
+  .diff-medium { background: rgba(251,191,36,0.1); color: var(--intermediate); border: 1px solid rgba(251,191,36,0.2); }
+  .diff-hard { background: rgba(248,113,113,0.1); color: var(--advanced); border: 1px solid rgba(248,113,113,0.2); }
+
+  /* PROGRESS NAV */
+  .mod-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-decoration: none;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.primary { background: rgba(61,255,228,0.08); border-color: rgba(61,255,228,0.3); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* DEFINITION LIST */
+  .def-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+
+  .def-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .def-term {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent2);
+    padding-top: 1px;
+  }
+
+  .def-desc { font-size: 13px; color: #C5C9D6; line-height: 1.6; }
+
+  /* OVERVIEW HERO */
+  .overview-hero {
+    background: linear-gradient(135deg, #0E0F11 0%, #131820 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 56px 48px;
+    max-width: 860px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overview-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(61,255,228,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hero-badge::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: 52px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .hero-title em { color: var(--accent); font-style: italic; }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .stats-strip {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item { text-align: left; }
+  .stat-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .overview-body { padding: 48px 56px; max-width: 860px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .module-section { padding: 32px 24px; }
+    .overview-hero { padding: 40px 24px 32px; }
+    .overview-body { padding: 32px 24px; }
+    .hero-title { font-size: 36px; }
+    .def-item { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">THREE.JS</div>
+      <div class="logo-title">Material Teórico</div>
+      <div class="logo-sub">8 módulos · 42 aulas · ~60h</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Início</div>
+      <a class="nav-item active" onclick="showSection('overview')" href="#">
+        <span class="nav-num">⌂</span> Visão Geral
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Módulos</div>
+      <a class="nav-item" onclick="showSection('m1')" href="#"><span class="nav-num">01</span> Fundamentos do 3D</a>
+      <a class="nav-item" onclick="showSection('m2')" href="#"><span class="nav-num">02</span> Cena, Geo & Materiais</a>
+      <a class="nav-item" onclick="showSection('m3')" href="#"><span class="nav-num">03</span> Iluminação & Texturas</a>
+      <a class="nav-item" onclick="showSection('m4')" href="#"><span class="nav-num">04</span> Animação & Interatividade</a>
+      <a class="nav-item" onclick="showSection('m5')" href="#"><span class="nav-num">05</span> Modelos 3D</a>
+      <a class="nav-item" onclick="showSection('m6')" href="#"><span class="nav-num">06</span> Física (Cannon.js)</a>
+      <a class="nav-item" onclick="showSection('m7')" href="#"><span class="nav-num">07</span> Shaders & GLSL</a>
+      <a class="nav-item" onclick="showSection('m8')" href="#"><span class="nav-num">08</span> Performance Avançada</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="module-section visible" style="padding:0; max-width:860px; display:block;">
+      <div class="overview-hero">
+        <div class="hero-badge">MATERIAL TEÓRICO COMPLETO</div>
+        <div class="hero-title">Curso Completo<br>de <em>Three.js</em></div>
+        <div class="hero-sub">Do WebGL bruto aos shaders GLSL — um guia teórico e prático para dominar gráficos 3D na web, com exercícios em cada módulo.</div>
+        <div class="stats-strip">
+          <div class="stat-item"><div class="stat-num">8</div><div class="stat-lbl">Módulos</div></div>
+          <div class="stat-item"><div class="stat-num">42</div><div class="stat-lbl">Aulas</div></div>
+          <div class="stat-item"><div class="stat-num">24</div><div class="stat-lbl">Exercícios</div></div>
+          <div class="stat-item"><div class="stat-num">60h</div><div class="stat-lbl">Duração estimada</div></div>
+        </div>
+      </div>
+      <div class="overview-body">
+        <div class="content-block">
+          <div class="block-title">Como usar este material</div>
+          <div class="block-text">Este documento acompanha o curso de Three.js e serve como <strong>referência teórica</strong> para cada módulo. A estrutura sugerida é: leia a teoria, assista às aulas da playlist do Wael Yasmina, depois execute os exercícios práticos do módulo.</div>
+          <div class="block-text">Cada módulo contém: <strong>conceitos fundamentais</strong> explicados em profundidade, <strong>exemplos de código comentados</strong>, <strong>dicas de performance</strong> e <strong>3 exercícios práticos</strong> com grau de dificuldade crescente.</div>
+        </div>
+
+        <div class="content-block">
+          <div class="block-title">Pré-requisitos</div>
+          <div class="concept-grid">
+            <div class="concept-card">
+              <div class="concept-card-title">JavaScript</div>
+              <div class="concept-card-text">ES6+: arrow functions, destructuring, módulos, classes, Promises e async/await.</div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-card-title">HTML & CSS</div>
+              <div class="concept-card-text">Saber criar uma página básica, usar o elemento canvas e incluir scripts.</div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-card-title">Matemática</div>
+              <div class="concept-card-text">Vetores 2D/3D e trigonometria básica (sin, cos). O curso revisa conforme necessário.</div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-card-title">Node.js & npm</div>
+              <div class="concept-card-text">Saber instalar pacotes e rodar scripts básicos de build (Vite).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-icon">◈</div>
+          <div class="callout-text"><strong>Nota:</strong> O material foi organizado com base na playlist do Wael Yasmina e nos artigos em waelyasmina.net. Para cada módulo há links implícitos aos vídeos correspondentes — siga a trilha na ordem proposta para progressão ideal.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 1 -->
+    <div id="m1" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow">
+          <span class="mod-num-big">MÓDULO 01 / 08</span>
+          <span class="level-tag beginner">Iniciante</span>
+        </div>
+        <div class="mod-title">Fundamentos do 3D na Web</div>
+        <div class="mod-intro">Antes de escrever uma linha de Three.js, é essencial entender por que a tecnologia existe, o que acontece dentro do browser quando uma cena 3D é renderizada e como preparar o ambiente para começar.</div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">O que é WebGL?</div>
+        <div class="block-text">WebGL (Web Graphics Library) é uma API JavaScript baseada no OpenGL ES 2.0/3.0 que permite renderizar gráficos 2D e 3D diretamente no browser <strong>sem plugins</strong>. Ela expõe a GPU do usuário ao JavaScript, permitindo operações massivamente paralelas.</div>
+        <div class="block-text">O problema: WebGL puro é <strong>extremamente verboso</strong>. Criar um triângulo colorido exige dezenas de linhas de código, gerenciamento manual de buffers, shaders e estados da GPU. É aí que entra o Three.js.</div>
+
+        <div class="def-list">
+          <div class="def-item">
+            <div class="def-term">WebGL puro</div>
+            <div class="def-desc">API de baixo nível. Controle total, mas muito código boilerplate. Usado quando se precisa de máxima performance ou funcionalidades não suportadas por frameworks.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">Three.js</div>
+            <div class="def-desc">Abstração sobre WebGL. Oferece conceitos de alto nível (cena, câmera, luz, material) mantendo flexibilidade para personalização avançada via shaders.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">Babylon.js</div>
+            <div class="def-desc">Alternativa mais "batteries-included" com física e sistema de nós integrados. Curva de aprendizado maior, mais voltada a jogos.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">React Three Fiber</div>
+            <div class="def-desc">Three.js declarativo via JSX + React. Excelente para aplicações React, mas adiciona abstração sobre abstração.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">Como a renderização funciona</div>
+        <div class="block-text">O <strong>pipeline de renderização</strong> é a sequência de etapas que transforma dados 3D em pixels na tela. Entender esse pipeline é fundamental para debugar problemas visuais e otimizar performance.</div>
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="concept-card-title">1. CPU → GPU</div>
+            <div class="concept-card-text">Vértices, índices e uniforms são enviados da memória RAM para a VRAM via buffers.</div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-card-title">2. Vertex Shader</div>
+            <div class="concept-card-text">Programa GLSL executado para cada vértice. Calcula a posição final na tela (gl_Position).</div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-card-title">3. Rasterização</div>
+            <div class="concept-card-text">A GPU converte triângulos em fragmentos (pixels potenciais) — processo automático.</div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-card-title">4. Fragment Shader</div>
+            <div class="concept-card-text">Programa GLSL para cada fragmento. Define a cor final do pixel (gl_FragColor).</div>
+          </div>
+        </div>
+        <div class="callout warn">
+          <div class="callout-icon">⚠</div>
+          <div class="callout-text"><strong>Atenção:</strong> A GPU executa os shaders em paralelo para milhões de pixels simultaneamente. Por isso, otimizações no fragment shader têm impacto enorme na performance.</div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">Configurando o ambiente</div>
+        <div class="block-text">Usaremos <strong>Vite</strong> como bundler por ser rápido, suportar ES Modules nativamente e ter HMR (Hot Module Replacement) excelente.</div>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+            <span>Terminal — setup inicial</span>
+          </div>
+          <div class="code-content">
+<span class="c-cm"># Criar projeto com Vite</span>
+npm create vite@latest meu-projeto-threejs -- --template vanilla
+<span class="c-kw">cd</span> meu-projeto-threejs
+
+<span class="c-cm"># Instalar Three.js</span>
+npm install three
+
+<span class="c-cm"># Iniciar servidor de desenvolvimento</span>
+npm run dev
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+            <span>main.js — Primeiro projeto Three.js</span>
+          </div>
+          <div class="code-content">
+<span class="c-kw">import</span> * <span class="c-kw">as</span> <span class="c-obj">THREE</span> <span class="c-kw">from</span> <span class="c-str">'three'</span>
+
+<span class="c-cm">// 1. Cena — contém todos os objetos</span>
+<span class="c-kw">const</span> scene = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Scene</span>()
+
+<span class="c-cm">// 2. Câmera — define o ponto de vista</span>
+<span class="c-kw">const</span> camera = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">PerspectiveCamera</span>(
+  <span class="c-num">75</span>,          <span class="c-cm">// FOV em graus</span>
+  window.innerWidth / window.innerHeight, <span class="c-cm">// aspect ratio</span>
+  <span class="c-num">0.1</span>,         <span class="c-cm">// near plane</span>
+  <span class="c-num">100</span>          <span class="c-cm">// far plane</span>
+)
+camera.position.<span class="c-fn">set</span>(<span class="c-num">0</span>, <span class="c-num">0</span>, <span class="c-num">3</span>)
+
+<span class="c-cm">// 3. Renderer — desenha no canvas</span>
+<span class="c-kw">const</span> renderer = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">WebGLRenderer</span>({ antialias: <span class="c-kw">true</span> })
+renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setPixelRatio(<span class="c-obj">Math</span>.<span class="c-fn">min</span>(window.devicePixelRatio, <span class="c-num">2</span>))
+document.body.<span class="c-fn">appendChild</span>(renderer.domElement)
+
+<span class="c-cm">// 4. Objeto — geometria + material = mesh</span>
+<span class="c-kw">const</span> geometry = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">BoxGeometry</span>(<span class="c-num">1</span>, <span class="c-num">1</span>, <span class="c-num">1</span>)
+<span class="c-kw">const</span> material = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">MeshBasicMaterial</span>({ color: <span class="c-str">'#3DFFE4'</span> })
+<span class="c-kw">const</span> cube = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Mesh</span>(geometry, material)
+scene.<span class="c-fn">add</span>(cube)
+
+<span class="c-cm">// 5. Loop de renderização</span>
+<span class="c-kw">function</span> <span class="c-fn">animate</span>() {
+  requestAnimationFrame(animate)
+  cube.rotation.y += <span class="c-num">0.01</span>
+  renderer.<span class="c-fn">render</span>(scene, camera)
+}
+<span class="c-fn">animate</span>()
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M1 -->
+      <div class="exercises-block">
+        <div class="exercises-header">
+          <div class="exercises-icon">✦</div>
+          <div>
+            <div class="exercises-label">Exercícios — Módulo 01</div>
+            <div class="exercises-sublabel">3 exercícios práticos · Fundamentos do 3D na Web</div>
+          </div>
+        </div>
+
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Hello Three.js World</div>
+            <div class="exercise-desc">Configure um projeto do zero e renderize sua primeira cena com pelo menos um objeto visível na tela.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar projeto com Vite e instalar Three.js</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Instanciar Scene, PerspectiveCamera e WebGLRenderer</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar um BoxGeometry com MeshBasicMaterial colorido</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Iniciar o loop de animação com requestAnimationFrame</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Responsive Renderer</div>
+            <div class="exercise-desc">Faça o canvas responder ao redimensionamento da janela sem deformar os objetos nem deixar o canvas com tamanho fixo.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar listener para o evento <code>resize</code></li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Atualizar <code>camera.aspect</code> e chamar <code>camera.updateProjectionMatrix()</code></li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Atualizar <code>renderer.setSize()</code> com as novas dimensões</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Testar redimensionando a janela: o cubo não deve distorcer</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Comparação de APIs</div>
+            <div class="exercise-desc">Crie o mesmo triângulo colorido com WebGL puro e com Three.js. Compare a quantidade de código e documente as diferenças em um comentário.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar um triângulo em WebGL puro (getContext('webgl'), vertex/fragment shader, buffers)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar o mesmo triângulo com Three.js (BufferGeometry + vertices manuais)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Contar as linhas de código de cada abordagem</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Escrever um parágrafo explicando quando usar cada uma</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mod-nav-footer">
+        <button class="nav-btn" disabled>← Anterior</button>
+        <button class="nav-btn primary" onclick="showSection('m2')">Módulo 02 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 2 -->
+    <div id="m2" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow">
+          <span class="mod-num-big">MÓDULO 02 / 08</span>
+          <span class="level-tag beginner">Iniciante</span>
+        </div>
+        <div class="mod-title">Cena, Geometrias e Materiais</div>
+        <div class="mod-intro">Estes são os três pilares de qualquer cena Three.js. Compreender como Scene, Camera, Renderer, Geometrias e Materiais interagem é a base para tudo que vem depois.</div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">O trio fundamental: Scene, Camera, Renderer</div>
+        <div class="block-text">Pense na metáfora de um <strong>set de filmagem</strong>: a <code>Scene</code> é o estúdio com todos os objetos e atores; a <code>Camera</code> é o equipamento de filmagem que define o que aparece no quadro; o <code>Renderer</code> é o projetor que exibe o resultado final.</div>
+
+        <div class="def-list">
+          <div class="def-item">
+            <div class="def-term">Scene</div>
+            <div class="def-desc">Grafo de cena (scene graph) que armazena todos os objetos, câmeras e luzes. Os objetos são organizados em hierarquia pai-filho via <code>add()</code>.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">PerspectiveCamera</div>
+            <div class="def-desc">Simula perspectiva humana. Parâmetros: FOV (campo de visão em graus), aspect ratio, near (mínimo de renderização) e far (máximo de renderização).</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">OrthographicCamera</div>
+            <div class="def-desc">Sem perspectiva — objetos distantes têm o mesmo tamanho que próximos. Útil para minimapas, jogos 2D e visualizações técnicas.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">WebGLRenderer</div>
+            <div class="def-desc">Renderiza a cena usando WebGL. Configure <code>antialias: true</code> e <code>setPixelRatio()</code> para qualidade em telas de alta resolução.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">Geometrias</div>
+        <div class="block-text">Uma <code>Geometry</code> define a <strong>forma</strong> de um objeto — seus vértices, arestas e faces. Three.js oferece geometrias primitivas prontas e permite criar geometrias customizadas via <code>BufferGeometry</code>.</div>
+
+        <div class="concept-grid">
+          <div class="concept-card"><div class="concept-card-title">BoxGeometry</div><div class="concept-card-text">Cubo. Parâmetros: width, height, depth, widthSegments, heightSegments, depthSegments.</div></div>
+          <div class="concept-card"><div class="concept-card-title">SphereGeometry</div><div class="concept-card-text">Esfera. Parâmetros: radius, widthSegments, heightSegments. Mais segmentos = mais suave.</div></div>
+          <div class="concept-card"><div class="concept-card-title">PlaneGeometry</div><div class="concept-card-text">Plano 2D. Útil para chãos, paredes e superfícies planas com texturas.</div></div>
+          <div class="concept-card"><div class="concept-card-title">CylinderGeometry</div><div class="concept-card-text">Cilindro/cone. Pode ter topo e base com raios diferentes, criando troncos de cone.</div></div>
+          <div class="concept-card"><div class="concept-card-title">TorusGeometry</div><div class="concept-card-text">Rosquinha. Parâmetros: radius (raio do torus), tube (raio do tubo), radialSegments, tubularSegments.</div></div>
+          <div class="concept-card"><div class="concept-card-title">BufferGeometry</div><div class="concept-card-text">Geometria customizada. Define vértices manualmente via Float32Array para formas arbitrárias.</div></div>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-icon">◆</div>
+          <div class="callout-text"><strong>Dica de performance:</strong> Geometrias são armazenadas na GPU. Reutilize a mesma instância de geometria em múltiplos objetos — não crie uma nova geometria para cada mesh. Use <code>InstancedMesh</code> quando tiver muitos objetos idênticos (veja Módulo 08).</div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">Materiais</div>
+        <div class="block-text">O material define a <strong>aparência visual</strong> da geometria — cor, textura, como ele reage à luz. A escolha do material impacta diretamente a performance.</div>
+
+        <div class="def-list">
+          <div class="def-item">
+            <div class="def-term">MeshBasicMaterial</div>
+            <div class="def-desc">Não reage à luz. Sempre a mesma cor independente da iluminação. O mais performático. Bom para wireframes e debug.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">MeshStandardMaterial</div>
+            <div class="def-desc">PBR (Physically Based Rendering). Parâmetros: roughness (rugosidade) e metalness (metalicidade). O padrão para cenas realistas.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">MeshPhongMaterial</div>
+            <div class="def-desc">Modelo de iluminação Phong (mais antigo que PBR). Mais rápido que Standard, mas menos preciso fisicamente.</div>
+          </div>
+          <div class="def-item">
+            <div class="def-term">ShaderMaterial</div>
+            <div class="def-desc">Usa shaders GLSL customizados. Máximo controle, mas exige conhecimento de GLSL (Módulo 07).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="block-title">Transformações: position, rotation, scale</div>
+        <div class="block-text">Todo objeto 3D no Three.js herda de <code>Object3D</code>, que fornece as propriedades de transformação. Estas formam a <strong>TRS Matrix</strong> (Translation, Rotation, Scale).</div>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+            <span>Transformações de objetos</span>
+          </div>
+          <div class="code-content">
+<span class="c-cm">// Position — Vector3</span>
+mesh.position.<span class="c-fn">set</span>(<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">0</span>)   <span class="c-cm">// ou mesh.position.x = 1</span>
+
+<span class="c-cm">// Rotation — Euler (radianos!)</span>
+mesh.rotation.y = <span class="c-obj">Math</span>.PI / <span class="c-num">4</span>   <span class="c-cm">// 45 graus</span>
+
+<span class="c-cm">// Scale</span>
+mesh.scale.<span class="c-fn">set</span>(<span class="c-num">2</span>, <span class="c-num">0.5</span>, <span class="c-num">2</span>)    <span class="c-cm">// dobro na X e Z, metade na Y</span>
+
+<span class="c-cm">// lookAt — aponta para uma posição no espaço</span>
+mesh.<span class="c-fn">lookAt</span>(<span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Vector3</span>(<span class="c-num">0</span>, <span class="c-num">0</span>, <span class="c-num">0</span>))
+
+<span class="c-cm">// Group — agrupa objetos para transformá-los juntos</span>
+<span class="c-kw">const</span> group = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Group</span>()
+group.<span class="c-fn">add</span>(mesh1)
+group.<span class="c-fn">add</span>(mesh2)
+scene.<span class="c-fn">add</span>(group)
+group.rotation.y = <span class="c-obj">Math</span>.PI  <span class="c-cm">// rotaciona os dois juntos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M2 -->
+      <div class="exercises-block">
+        <div class="exercises-header">
+          <div class="exercises-icon">✦</div>
+          <div>
+            <div class="exercises-label">Exercícios — Módulo 02</div>
+            <div class="exercises-sublabel">3 exercícios práticos · Cena, Geometrias e Materiais</div>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Galeria de Geometrias</div>
+            <div class="exercise-desc">Crie uma cena com 5 geometrias diferentes, cada uma com um material diferente, organizadas em linha horizontal.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar pelo menos: Box, Sphere, Torus, Cylinder e Plane</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Cada objeto com cor diferente via MeshBasicMaterial</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Posicionar com <code>position.x</code> para espaçamento uniforme</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar OrbitControls para explorar a cena</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Sistema Solar Simples</div>
+            <div class="exercise-desc">Use Groups e hierarquia de objetos para criar Sol, Terra e Lua com rotações corretas.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Sol no centro — SphereGeometry maior com MeshBasicMaterial amarelo</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Grupo "Terra" que orbita o Sol (rotacionar o grupo no loop)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Lua dentro do grupo Terra, a uma distância menor</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> A Terra deve rotacionar em torno de si mesma E orbitar o Sol</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Construtor de Cenas</div>
+            <div class="exercise-desc">Crie uma função <code>createObject(type, color, position)</code> que receba configurações e retorne um mesh pronto para adicionar à cena. Use-a para criar 10 objetos programaticamente.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> A função deve suportar tipos: 'box', 'sphere', 'cylinder', 'torus'</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Gerar 10 objetos com tipos e cores aleatórios</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Posicioná-los em posições aleatórias dentro de um volume 10x10x10</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar rotação aleatória diferente para cada objeto no loop</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m1')">← Módulo 01</button>
+        <button class="nav-btn primary" onclick="showSection('m3')">Módulo 03 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 3 -->
+    <div id="m3" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 03 / 08</span><span class="level-tag beginner">Iniciante</span></div>
+        <div class="mod-title">Iluminação e Texturas</div>
+        <div class="mod-intro">Iluminação e texturas são o que transforma uma cena técnica em algo visualmente convincente. Este módulo explora o PBR (Physically Based Rendering) e como usá-lo para criar materiais realistas.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Tipos de luz</div>
+        <div class="block-text">Cada tipo de luz tem um comportamento diferente e um custo de performance diferente. Use o mínimo necessário para o efeito desejado.</div>
+        <div class="def-list">
+          <div class="def-item"><div class="def-term">AmbientLight</div><div class="def-desc">Iluminação global uniforme. Não cria sombras. Simula luz refletida pelo ambiente. Sempre use junto com outras luzes para evitar sombras totalmente pretas.</div></div>
+          <div class="def-item"><div class="def-term">DirectionalLight</div><div class="def-desc">Raios paralelos, como o sol. Alta performance. Cria sombras nítidas. Posição define a direção, não a distância.</div></div>
+          <div class="def-item"><div class="def-term">PointLight</div><div class="def-desc">Irradia em todas as direções de um ponto, como uma lâmpada. Tem atenuação por distância (decay). Mais custosa que DirectionalLight.</div></div>
+          <div class="def-item"><div class="def-term">SpotLight</div><div class="def-desc">Cone de luz. Parâmetros: angle, penumbra, distance. A mais versátil mas também a mais custosa.</div></div>
+        </div>
+        <div class="callout warn">
+          <div class="callout-icon">⚠</div>
+          <div class="callout-text"><strong>Performance:</strong> Sombras (shadow maps) são caras. Limite a 1-2 luzes com <code>castShadow: true</code>. Configure <code>shadow.mapSize</code> com valores potências de 2 (512, 1024, 2048).</div>
+        </div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">PBR e MeshStandardMaterial</div>
+        <div class="block-text">PBR (Physically Based Rendering) é um conjunto de técnicas que simula como a luz interage com superfícies reais. O <code>MeshStandardMaterial</code> implementa PBR com dois parâmetros chave:</div>
+        <div class="concept-grid">
+          <div class="concept-card"><div class="concept-card-title">roughness</div><div class="concept-card-text">0 = espelho perfeito. 1 = completamente difuso (madeira fosca, pedra). Controla a dispersão da luz refletida.</div></div>
+          <div class="concept-card"><div class="concept-card-title">metalness</div><div class="concept-card-text">0 = não-metal (plástico, madeira). 1 = metal puro (aço, ouro). Afeta como as reflexões se comportam.</div></div>
+          <div class="concept-card"><div class="concept-card-title">map</div><div class="concept-card-text">Textura de cor base (albedo). Multiplica pela cor do material.</div></div>
+          <div class="concept-card"><div class="concept-card-title">normalMap</div><div class="concept-card-text">Simula irregularidades de superfície sem adicionar geometria. Essencial para realismo.</div></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>TextureLoader e PBR</span></div>
+          <div class="code-content">
+<span class="c-kw">const</span> loader = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">TextureLoader</span>()
+
+<span class="c-kw">const</span> material = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">MeshStandardMaterial</span>({
+  map:          loader.<span class="c-fn">load</span>(<span class="c-str">'/textures/color.jpg'</span>),
+  normalMap:    loader.<span class="c-fn">load</span>(<span class="c-str">'/textures/normal.jpg'</span>),
+  roughnessMap: loader.<span class="c-fn">load</span>(<span class="c-str">'/textures/roughness.jpg'</span>),
+  metalnessMap: loader.<span class="c-fn">load</span>(<span class="c-str">'/textures/metalness.jpg'</span>),
+  aoMap:        loader.<span class="c-fn">load</span>(<span class="c-str">'/textures/ao.jpg'</span>), <span class="c-cm">// ambient occlusion</span>
+  roughness: <span class="c-num">0.5</span>,   <span class="c-cm">// valor base (multiplicado pelo mapa)</span>
+  metalness: <span class="c-num">0.0</span>,
+})
+
+<span class="c-cm">// Environment Map para reflexões</span>
+<span class="c-kw">import</span> { <span class="c-obj">RGBELoader</span> } <span class="c-kw">from</span> <span class="c-str">'three/examples/jsm/loaders/RGBELoader.js'</span>
+<span class="c-kw">new</span> <span class="c-obj">RGBELoader</span>().<span class="c-fn">load</span>(<span class="c-str">'/env.hdr'</span>, (texture) => {
+  texture.mapping = <span class="c-obj">THREE</span>.EquirectangularReflectionMapping
+  scene.environment = texture  <span class="c-cm">// afeta todos os materiais PBR</span>
+  scene.background = texture   <span class="c-cm">// opcional: usar como fundo</span>
+})
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M3 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 03</div><div class="exercises-sublabel">3 exercícios práticos · Iluminação e Texturas</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Cena Noturna vs Diurna</div>
+            <div class="exercise-desc">Crie uma cena com um botão que alterna entre iluminação "dia" (DirectionalLight branca intensa) e "noite" (AmbientLight azulada fraca + PointLight laranja).</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar duas presets de luzes e alternar via botão HTML</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Ativar sombras na luz diurna com castShadow</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar MeshStandardMaterial nos objetos (reage à luz)</div></li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar um plano com receiveShadow para receber sombras</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Showcase de Material PBR</div>
+            <div class="exercise-desc">Crie uma grid de esferas com roughness e metalness variando de 0 a 1 para visualizar o espaço de parâmetros PBR (estilo editor de material).</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar grid 5x5 de esferas com MeshStandardMaterial</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Eixo X: roughness 0→1; Eixo Y: metalness 0→1</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar environment map HDR para reflexões visíveis</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar labels HTML com os valores (CSS2DRenderer ou simples overlay)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Cena Ultra-Realista</div>
+            <div class="exercise-desc">Recrie a cena do artigo do Wael Yasmina sobre "ultra-realistic scenes": tone mapping, exposure, gamma correction e pelo menos um objeto com textura PBR completa (color, normal, roughness, ao maps).</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar renderer.toneMapping (ACESFilmicToneMapping) e toneMappingExposure</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Baixar um conjunto de texturas PBR gratuito (ambientcg.com)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Aplicar todas as maps (color, normal, roughness, ao, displacement)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Comparar com e sem tone mapping para entender o impacto</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m2')">← Módulo 02</button>
+        <button class="nav-btn primary" onclick="showSection('m4')">Módulo 04 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 4 -->
+    <div id="m4" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 04 / 08</span><span class="level-tag intermediate">Intermediário</span></div>
+        <div class="mod-title">Animação e Interatividade</div>
+        <div class="mod-intro">Movimento e resposta ao usuário são o que diferencia uma cena 3D de uma imagem estática. Este módulo explora o loop de animação, raycasting e técnicas de câmera dinâmica.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">O loop de animação</div>
+        <div class="block-text">O <code>requestAnimationFrame</code> sincroniza com o refresh da tela (tipicamente 60fps). Para animações frame-rate independentes, use o <code>Clock</code> do Three.js para medir o tempo decorrido.</div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>Loop de animação robusto</span></div>
+          <div class="code-content">
+<span class="c-kw">const</span> clock = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Clock</span>()
+
+<span class="c-kw">function</span> <span class="c-fn">animate</span>() {
+  requestAnimationFrame(animate)
+
+  <span class="c-kw">const</span> delta = clock.<span class="c-fn">getDelta</span>()      <span class="c-cm">// segundos desde o último frame</span>
+  <span class="c-kw">const</span> elapsed = clock.<span class="c-fn">getElapsedTime</span>() <span class="c-cm">// segundos desde o início</span>
+
+  <span class="c-cm">// Frame-rate independente: velocidade constante a qualquer fps</span>
+  mesh.rotation.y += <span class="c-num">1.0</span> * delta     <span class="c-cm">// 1 radiano por segundo</span>
+
+  <span class="c-cm">// Animação baseada em tempo (sin/cos para movimento cíclico)</span>
+  mesh.position.y = <span class="c-obj">Math</span>.<span class="c-fn">sin</span>(elapsed * <span class="c-num">2</span>) * <span class="c-num">0.5</span>
+
+  renderer.<span class="c-fn">render</span>(scene, camera)
+}
+<span class="c-fn">animate</span>()
+          </div>
+        </div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Raycasting — interação com objetos 3D</div>
+        <div class="block-text">O <code>Raycaster</code> projeta um raio da câmera para o espaço 3D na direção do cursor do mouse e detecta quais objetos esse raio intersecta. É a base para hover, clique e seleção em cenas 3D.</div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>Raycasting com hover e clique</span></div>
+          <div class="code-content">
+<span class="c-kw">const</span> raycaster = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Raycaster</span>()
+<span class="c-kw">const</span> pointer = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Vector2</span>()
+
+<span class="c-cm">// Converter coordenadas do mouse para espaço normalizado (-1 a 1)</span>
+window.<span class="c-fn">addEventListener</span>(<span class="c-str">'mousemove'</span>, (e) => {
+  pointer.x = (e.clientX / window.innerWidth) * <span class="c-num">2</span> - <span class="c-num">1</span>
+  pointer.y = -(e.clientY / window.innerHeight) * <span class="c-num">2</span> + <span class="c-num">1</span>
+})
+
+<span class="c-cm">// No loop de animação:</span>
+raycaster.<span class="c-fn">setFromCamera</span>(pointer, camera)
+<span class="c-kw">const</span> hits = raycaster.<span class="c-fn">intersectObjects</span>(scene.children)
+
+<span class="c-kw">if</span> (hits.length > <span class="c-num">0</span>) {
+  <span class="c-kw">const</span> obj = hits[<span class="c-num">0</span>].object
+  obj.material.color.<span class="c-fn">set</span>(<span class="c-str">'#FF6B35'</span>)  <span class="c-cm">// hover: muda cor</span>
+}
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M4 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 04</div><div class="exercises-sublabel">3 exercícios práticos · Animação e Interatividade</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Animações com Clock</div>
+            <div class="exercise-desc">Crie 3 objetos cada um com um padrão de animação diferente usando getElapsedTime(): bobbing (cima-baixo), spin e escala pulsante.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Objeto 1: position.y = Math.sin(elapsed * freq) * amplitude</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Objeto 2: rotação constante (frame-rate independente com delta)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Objeto 3: scale pulsante com Math.sin()</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Cada animação com frequência e amplitude diferentes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Galeria Interativa com Raycasting</div>
+            <div class="exercise-desc">Crie 6 cubos na cena. Ao hover, o cubo fica maior e muda de cor. Ao clicar, um painel HTML mostra informações sobre o cubo.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Raycaster detectando hover em todos os cubos</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Transição suave de escala no hover (lerp)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Ao clicar, exibir div HTML com nome e cor do objeto</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Cursor muda para 'pointer' ao passar sobre objetos</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Objeto Seguindo um Caminho</div>
+            <div class="exercise-desc">Anime um objeto que percorre uma curva fechada (CatmullRomCurve3) mantendo a orientação correta ao longo do caminho (lookAt na tangente).</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar CatmullRomCurve3 com 6+ pontos e closed: true</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar getPoint(t) e getPointAt(t + 0.001) para posição e tangente</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Chamar mesh.lookAt(nextPoint) para orientação correta</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Visualizar a curva com Line + BufferGeometry</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m3')">← Módulo 03</button>
+        <button class="nav-btn primary" onclick="showSection('m5')">Módulo 05 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 5 -->
+    <div id="m5" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 05 / 08</span><span class="level-tag intermediate">Intermediário</span></div>
+        <div class="mod-title">Modelos 3D e Animações</div>
+        <div class="mod-intro">Importar assets profissionais criados em Blender, Maya ou outras ferramentas é o passo que une o mundo do design 3D com o código. O formato GLTF é o padrão da web 3D.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Formatos 3D e por que GLTF</div>
+        <div class="block-text">O <strong>GLTF</strong> (GL Transmission Format) é o "JPEG do 3D" — otimizado para transmissão e carregamento rápido no browser. O formato <strong>GLB</strong> é a versão binária compacta do GLTF (tudo em um arquivo).</div>
+        <div class="def-list">
+          <div class="def-item"><div class="def-term">GLTF / GLB</div><div class="def-desc">Padrão moderno. Suporta PBR, animações, morfologia, câmeras e muito mais. Use sempre que possível.</div></div>
+          <div class="def-item"><div class="def-term">OBJ</div><div class="def-desc">Formato legado simples. Não suporta animações. Útil para geometrias estáticas simples.</div></div>
+          <div class="def-item"><div class="def-term">FBX</div><div class="def-desc">Formato proprietário da Autodesk. Suporta animações mas é pesado. Evite se possível — converta para GLTF.</div></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>Carregando e animando um modelo GLTF</span></div>
+          <div class="code-content">
+<span class="c-kw">import</span> { <span class="c-obj">GLTFLoader</span> } <span class="c-kw">from</span> <span class="c-str">'three/examples/jsm/loaders/GLTFLoader.js'</span>
+
+<span class="c-kw">let</span> mixer
+
+<span class="c-kw">const</span> loader = <span class="c-kw">new</span> <span class="c-obj">GLTFLoader</span>()
+loader.<span class="c-fn">load</span>(<span class="c-str">'/models/character.glb'</span>, (gltf) => {
+  <span class="c-kw">const</span> model = gltf.scene
+  model.scale.<span class="c-fn">setScalar</span>(<span class="c-num">0.5</span>)
+  scene.<span class="c-fn">add</span>(model)
+
+  <span class="c-cm">// Configurar AnimationMixer</span>
+  mixer = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">AnimationMixer</span>(model)
+
+  <span class="c-cm">// Reproduzir primeira animação em loop</span>
+  <span class="c-kw">const</span> action = mixer.<span class="c-fn">clipAction</span>(gltf.animations[<span class="c-num">0</span>])
+  action.<span class="c-fn">play</span>()
+
+  <span class="c-cm">// Crossfade entre animações</span>
+  <span class="c-kw">const</span> idle = mixer.<span class="c-fn">clipAction</span>(gltf.animations[<span class="c-num">0</span>])
+  <span class="c-kw">const</span> walk = mixer.<span class="c-fn">clipAction</span>(gltf.animations[<span class="c-num">1</span>])
+  idle.<span class="c-fn">play</span>()
+  <span class="c-cm">// Para trocar: idle.crossFadeTo(walk, 0.5, true)</span>
+})
+
+<span class="c-cm">// No loop de animação — SEMPRE atualizar o mixer</span>
+<span class="c-kw">function</span> <span class="c-fn">animate</span>() {
+  requestAnimationFrame(animate)
+  <span class="c-kw">const</span> delta = clock.<span class="c-fn">getDelta</span>()
+  <span class="c-kw">if</span> (mixer) mixer.<span class="c-fn">update</span>(delta)
+  renderer.<span class="c-fn">render</span>(scene, camera)
+}
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M5 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 05</div><div class="exercises-sublabel">3 exercícios práticos · Modelos 3D</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Vitrine de Modelo</div>
+            <div class="exercise-desc">Carregue um modelo GLTF gratuito (sketchfab.com ou market.pmnd.rs) e apresente-o com iluminação adequada e OrbitControls.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar GLTFLoader para carregar o modelo</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Centralizar o modelo usando Box3 e getCenter()</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar environment map HDR para reflexões</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Tela de loading com percentual usando onProgress callback</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Controlador de Animações</div>
+            <div class="exercise-desc">Carregue um modelo com múltiplas animações e crie botões HTML para alternar entre elas com crossfade suave.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Listar todas as animações do modelo e criar um botão para cada</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Implementar crossFadeTo() com duração de 0.5s</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Destacar o botão da animação ativa</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar modelo gratuito com 3+ animações (Mixamo ou Ready Player Me)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Cabeça que Segue o Cursor</div>
+            <div class="exercise-desc">Acesse o bone da cabeça de um personagem e faça-o rotacionar suavemente para olhar na direção do cursor do mouse.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Encontrar o bone 'Head' ou similar via model.getObjectByName()</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Raycasting na cena para obter a posição 3D do cursor</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Usar quaternion.slerp() para interpolação suave</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Limitar ângulo máximo de rotação para parecer natural</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m4')">← Módulo 04</button>
+        <button class="nav-btn primary" onclick="showSection('m6')">Módulo 06 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 6 -->
+    <div id="m6" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 06 / 08</span><span class="level-tag intermediate">Intermediário</span></div>
+        <div class="mod-title">Física com Cannon.js</div>
+        <div class="mod-intro">Simulação física real: gravidade, colisões e reações físicas. Cannon-es é a versão moderna e mantida do cannon.js, compatível com ES Modules.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Como a física funciona com Three.js</div>
+        <div class="block-text">Three.js cuida da <strong>renderização</strong>. Cannon.js cuida da <strong>física</strong>. Você mantém dois mundos em paralelo: o mundo visual (Three.js) e o mundo físico (Cannon-es). A cada frame, você copia as posições e rotações do mundo físico para os objetos visuais.</div>
+        <div class="concept-grid">
+          <div class="concept-card"><div class="concept-card-title">World</div><div class="concept-card-text">O mundo físico. Contém gravidade, broadphase e a lista de bodies. Chamar world.step() avança a simulação.</div></div>
+          <div class="concept-card"><div class="concept-card-title">Body</div><div class="concept-card-text">Um objeto físico. Tem massa, velocidade, força e posição. mass: 0 = estático (imóvel).</div></div>
+          <div class="concept-card"><div class="concept-card-title">Shape</div><div class="concept-card-text">A forma geométrica para colisão: Box, Sphere, Plane, Cylinder, ConvexPolyhedron.</div></div>
+          <div class="concept-card"><div class="concept-card-title">ContactMaterial</div><div class="concept-card-text">Define como dois materiais interagem: fricção (friction) e restituição/bouncing (restitution).</div></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>Setup completo de física</span></div>
+          <div class="code-content">
+<span class="c-kw">import</span> * <span class="c-kw">as</span> <span class="c-obj">CANNON</span> <span class="c-kw">from</span> <span class="c-str">'cannon-es'</span>
+
+<span class="c-cm">// Mundo físico</span>
+<span class="c-kw">const</span> world = <span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">World</span>()
+world.gravity.<span class="c-fn">set</span>(<span class="c-num">0</span>, -<span class="c-num">9.82</span>, <span class="c-num">0</span>)  <span class="c-cm">// gravidade realista</span>
+world.broadphase = <span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">NaiveBroadphase</span>()
+
+<span class="c-cm">// Corpo físico — esfera quicando</span>
+<span class="c-kw">const</span> sphereShape = <span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">Sphere</span>(<span class="c-num">0.5</span>)
+<span class="c-kw">const</span> sphereBody = <span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">Body</span>({ mass: <span class="c-num">1</span> })
+sphereBody.addShape(sphereShape)
+sphereBody.position.<span class="c-fn">set</span>(<span class="c-num">0</span>, <span class="c-num">5</span>, <span class="c-num">0</span>)
+world.<span class="c-fn">addBody</span>(sphereBody)
+
+<span class="c-cm">// Chão estático (mass: 0 = imóvel)</span>
+<span class="c-kw">const</span> groundBody = <span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">Body</span>({ mass: <span class="c-num">0</span> })
+groundBody.addShape(<span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">Plane</span>())
+groundBody.quaternion.<span class="c-fn">setFromAxisAngle</span>(<span class="c-kw">new</span> <span class="c-obj">CANNON</span>.<span class="c-fn">Vec3</span>(<span class="c-num">1</span>,<span class="c-num">0</span>,<span class="c-num">0</span>), -Math.PI/<span class="c-num">2</span>)
+world.<span class="c-fn">addBody</span>(groundBody)
+
+<span class="c-cm">// No loop — sincronizar física com Three.js</span>
+<span class="c-kw">function</span> <span class="c-fn">animate</span>() {
+  requestAnimationFrame(animate)
+  world.<span class="c-fn">step</span>(<span class="c-num">1</span>/<span class="c-num">60</span>, delta, <span class="c-num">3</span>)  <span class="c-cm">// fixedStep, deltaTime, maxSubSteps</span>
+
+  <span class="c-cm">// Copiar posição e rotação da física para o mesh</span>
+  sphereMesh.position.<span class="c-fn">copy</span>(sphereBody.position)
+  sphereMesh.quaternion.<span class="c-fn">copy</span>(sphereBody.quaternion)
+
+  renderer.<span class="c-fn">render</span>(scene, camera)
+}
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M6 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 06</div><div class="exercises-sublabel">3 exercícios práticos · Física com Cannon.js</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Bola Quicando</div>
+            <div class="exercise-desc">Esfera caindo com gravidade, quicando no chão com restituição configurável via slider HTML.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar world com gravidade -9.82</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar ContactMaterial com restitution ajustável</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Slider HTML que ajusta restitution em tempo real (0 a 1)</div></li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Botão "Reset" que devolve a esfera à altura inicial</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Criador de Objetos Físicos</div>
+            <div class="exercise-desc">Ao clicar na tela, um novo objeto (cubo ou esfera) aparece e cai com física. Limite a 20 objetos (remova o mais antigo ao adicionar um novo).</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Raycasting para determinar posição de criação na cena</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar mesh Three.js + body Cannon.js sincronizados</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Manter array de objetos e remover o mais antigo quando >20</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Remover da scene E do world ao deletar</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Torre de Dominó</div>
+            <div class="exercise-desc">Crie uma fileira de peças de dominó em pé. Um clique derruba a primeira peça desencadeando uma reação em cadeia física.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar 15+ peças de dominó usando BoxBody com mass > 0</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Espaçamento correto para garantir a reação em cadeia</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Aplicar impulso na primeira peça ao clicar (applyImpulse)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Botão "Reset" que recoloca todas as peças na posição inicial</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m5')">← Módulo 05</button>
+        <button class="nav-btn primary" onclick="showSection('m7')">Módulo 07 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 7 -->
+    <div id="m7" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 07 / 08</span><span class="level-tag advanced">Avançado</span></div>
+        <div class="mod-title">Shaders e GLSL</div>
+        <div class="mod-intro">Shaders são programas que rodam diretamente na GPU. Dominar GLSL abre um nível completamente novo de controle criativo — efeitos impossíveis de obter com os materiais nativos do Three.js.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">GLSL: a linguagem dos shaders</div>
+        <div class="block-text">GLSL (OpenGL Shading Language) é uma linguagem com sintaxe similar ao C. É executada em paralelo na GPU — cada vertex shader roda para cada vértice, e cada fragment shader roda para cada pixel, <strong>simultaneamente</strong>.</div>
+        <div class="concept-grid">
+          <div class="concept-card"><div class="concept-card-title">Tipos base</div><div class="concept-card-text">float, int, bool, vec2, vec3, vec4, mat2, mat3, mat4. Sem conversão implícita — use float(intVar).</div></div>
+          <div class="concept-card"><div class="concept-card-title">Uniforms</div><div class="concept-card-text">Valores passados do JavaScript para o shader. Iguais para todos os vértices/fragmentos no mesmo draw call.</div></div>
+          <div class="concept-card"><div class="concept-card-title">Attributes</div><div class="concept-card-text">Valores por vértice (só no vertex shader): position, normal, uv. Lidos da BufferGeometry.</div></div>
+          <div class="concept-card"><div class="concept-card-title">Varyings</div><div class="concept-card-text">Valores passados do vertex para o fragment shader. Interpolados automaticamente entre vértices.</div></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>ShaderMaterial completo — onda animada</span></div>
+          <div class="code-content">
+<span class="c-kw">const</span> material = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">ShaderMaterial</span>({
+  uniforms: {
+    uTime:  { value: <span class="c-num">0</span> },
+    uColor: { value: <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Color</span>(<span class="c-str">'#3DFFE4'</span>) }
+  },
+  vertexShader: <span class="c-str">`
+    uniform float uTime;
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      vec3 pos = position;
+      pos.z += sin(pos.x * 3.0 + uTime * 2.0) * 0.2;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `</span>,
+  fragmentShader: <span class="c-str">`
+    uniform vec3 uColor;
+    varying vec2 vUv;
+
+    void main() {
+      float brightness = vUv.y;  // mais claro no topo
+      gl_FragColor = vec4(uColor * brightness, 1.0);
+    }
+  `</span>
+})
+
+<span class="c-cm">// Atualizar uTime no loop</span>
+material.uniforms.uTime.value = clock.<span class="c-fn">getElapsedTime</span>()
+          </div>
+        </div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Post-processing com EffectComposer</div>
+        <div class="block-text">Post-processing aplica efeitos sobre a imagem renderizada — como filtros de foto, mas em tempo real. O <code>EffectComposer</code> encadeia múltiplos "passes" de processamento.</div>
+        <div class="callout info">
+          <div class="callout-icon">◈</div>
+          <div class="callout-text"><strong>UnrealBloomPass seletivo:</strong> Use <code>layers</code> para controlar quais objetos emitem bloom. Objetos na layer 1 recebem bloom; os da layer 0 não. Combine dois renderers com <code>addPass()</code> para o efeito final.</div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M7 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 07</div><div class="exercises-sublabel">3 exercícios práticos · Shaders e GLSL</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Shader de Gradiente Animado</div>
+            <div class="exercise-desc">Crie um PlaneGeometry com ShaderMaterial que exibe um gradiente de cor animado baseado em uv coordinates e tempo.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Vertex shader passando vUv como varying</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Fragment shader misturando duas cores via mix(colorA, colorB, vUv.x)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Uniform uTime animando o gradiente (sin/cos)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Adicionar um terceiro uniform uColorA e uColorB controlados por color pickers HTML</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Distorção de Vértices</div>
+            <div class="exercise-desc">Use um vertex shader para distorcer uma SphereGeometry com alta resolução, criando um efeito de "blob" animado.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> SphereGeometry com 64x64 segmentos (alta subdivisão)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Vertex shader deslocando normal * sin(position + uTime)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Recalcular normais no shader para iluminação correta</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Colorir baseado na distância do centro (vUv ou length(position))</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Bloom Seletivo</div>
+            <div class="exercise-desc">Implemente UnrealBloomPass com bloom seletivo: apenas certos objetos brilham, usando o sistema de layers do Three.js.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar EffectComposer com RenderPass + UnrealBloomPass</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Objetos "glowing" na layers.set(1); outros na layer 0</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Implementar a técnica de dois passes (bloom + base)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Sliders HTML para controlar strength, radius e threshold do bloom</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m6')">← Módulo 06</button>
+        <button class="nav-btn primary" onclick="showSection('m8')">Módulo 08 →</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO 8 -->
+    <div id="m8" class="module-section" style="display:none;">
+      <div class="mod-header">
+        <div class="mod-eyebrow"><span class="mod-num-big">MÓDULO 08 / 08</span><span class="level-tag advanced">Avançado</span></div>
+        <div class="mod-title">Performance e Técnicas Avançadas</div>
+        <div class="mod-intro">O último módulo trata de escalabilidade: como manter 60fps com cenas complexas, técnicas de otimização avançadas e como fazer deploy de uma aplicação Three.js em produção.</div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">InstancedMesh — o segredo dos 60fps</div>
+        <div class="block-text">Cada objeto na cena normalmente gera um "draw call" para a GPU. Muitos draw calls matam a performance. O <code>InstancedMesh</code> renderiza <strong>milhares de objetos idênticos em um único draw call</strong>, usando uma matriz de transformação por instância.</div>
+        <div class="code-block">
+          <div class="code-header"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span>InstancedMesh — 10.000 cubos com 1 draw call</span></div>
+          <div class="code-content">
+<span class="c-kw">const</span> COUNT = <span class="c-num">10000</span>
+<span class="c-kw">const</span> geometry = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">BoxGeometry</span>(<span class="c-num">0.1</span>, <span class="c-num">0.1</span>, <span class="c-num">0.1</span>)
+<span class="c-kw">const</span> material = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">MeshStandardMaterial</span>()
+
+<span class="c-kw">const</span> mesh = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">InstancedMesh</span>(geometry, material, COUNT)
+scene.<span class="c-fn">add</span>(mesh)
+
+<span class="c-cm">// Posicionar cada instância com uma Matrix4</span>
+<span class="c-kw">const</span> matrix = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Matrix4</span>()
+<span class="c-kw">const</span> position = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Vector3</span>()
+<span class="c-kw">const</span> quaternion = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Quaternion</span>()
+<span class="c-kw">const</span> scale = <span class="c-kw">new</span> <span class="c-obj">THREE</span>.<span class="c-fn">Vector3</span>(<span class="c-num">1</span>, <span class="c-num">1</span>, <span class="c-num">1</span>)
+
+<span class="c-kw">for</span> (<span class="c-kw">let</span> i = <span class="c-num">0</span>; i < COUNT; i++) {
+  position.<span class="c-fn">set</span>(
+    (<span class="c-obj">Math</span>.<span class="c-fn">random</span>() - <span class="c-num">0.5</span>) * <span class="c-num">20</span>,
+    (<span class="c-obj">Math</span>.<span class="c-fn">random</span>() - <span class="c-num">0.5</span>) * <span class="c-num">20</span>,
+    (<span class="c-obj">Math</span>.<span class="c-fn">random</span>() - <span class="c-num">0.5</span>) * <span class="c-num">20</span>
+  )
+  matrix.<span class="c-fn">compose</span>(position, quaternion, scale)
+  mesh.<span class="c-fn">setMatrixAt</span>(i, matrix)
+}
+
+mesh.instanceMatrix.needsUpdate = <span class="c-kw">true</span>
+          </div>
+        </div>
+      </div>
+      <div class="content-block">
+        <div class="block-title">Outras técnicas de performance</div>
+        <div class="def-list">
+          <div class="def-item"><div class="def-term">LOD</div><div class="def-desc">Level of Detail — exibe versões menos detalhadas do modelo conforme a distância da câmera aumenta. Reduz o número de triângulos renderizados.</div></div>
+          <div class="def-item"><div class="def-term">Frustum Culling</div><div class="def-desc">Three.js automaticamente não renderiza objetos fora do campo de visão da câmera. Certifique-se que geometry.boundingSphere está calculado.</div></div>
+          <div class="def-item"><div class="def-term">Dispose</div><div class="def-desc">Libere memória GPU ao remover objetos: geometry.dispose(), material.dispose(), texture.dispose(). Memory leaks são um problema real em Three.js.</div></div>
+          <div class="def-item"><div class="def-term">CSS2DRenderer</div><div class="def-desc">Renderiza elementos HTML em world space, sincronizados com a câmera. Perfeito para labels e UI dentro da cena 3D.</div></div>
+        </div>
+        <div class="callout tip">
+          <div class="callout-icon">◆</div>
+          <div class="callout-text"><strong>Deploy com Vite:</strong> Configure <code>base</code> no vite.config.js para o caminho do GitHub Pages (ex: <code>'/meu-repo/'</code>). Execute <code>npm run build</code> e faça deploy da pasta <code>dist/</code> para a branch gh-pages.</div>
+        </div>
+      </div>
+
+      <!-- EXERCISES M8 -->
+      <div class="exercises-block">
+        <div class="exercises-header"><div class="exercises-icon">✦</div><div><div class="exercises-label">Exercícios — Módulo 08</div><div class="exercises-sublabel">3 exercícios práticos · Performance e Técnicas Avançadas</div></div></div>
+        <div class="exercise-item">
+          <div class="exercise-num">01</div>
+          <div>
+            <div class="exercise-diff diff-easy">● FÁCIL</div>
+            <div class="exercise-title">Benchmark de Draw Calls</div>
+            <div class="exercise-desc">Compare visualmente 1000 Meshes individuais vs InstancedMesh. Exiba o FPS e o número de draw calls usando renderer.info.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar 1000 objetos individuais e medir FPS</div></li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Substituir por InstancedMesh e medir novamente</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Exibir renderer.info.render.calls (draw calls) no HTML</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Botão para alternar entre os dois modos em tempo real</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">02</div>
+          <div>
+            <div class="exercise-diff diff-medium">● MÉDIO</div>
+            <div class="exercise-title">Labels com CSS2DRenderer</div>
+            <div class="exercise-desc">Adicione labels HTML a objetos 3D que seguem sua posição na tela conforme a câmera se move, como em um aplicativo de visualização de dados.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar CSS2DRenderer como overlay do canvas principal</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Criar CSS2DObject para cada objeto na cena</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Atualizar o CSS2DRenderer no loop (renderer2.render(scene, camera))</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Estilizar os labels com CSS (borda, fundo semitransparente)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="exercise-item">
+          <div class="exercise-num">03</div>
+          <div>
+            <div class="exercise-diff diff-hard">● DESAFIO</div>
+            <div class="exercise-title">Projeto Final — Deploy no GitHub Pages</div>
+            <div class="exercise-desc">Crie uma cena que combine técnicas de pelo menos 3 módulos diferentes e faça deploy funcional no GitHub Pages.</div>
+            <ul class="exercise-tasks">
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Cena com InstancedMesh + iluminação PBR + animação (mínimo)</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Loading screen com LoadingManager e barra de progresso</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Configurar vite.config.js com base path correto</li>
+              <li><div class="task-check" onclick="toggleTask(this)"></div> Build e deploy na gh-pages — URL pública funcionando</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mod-nav-footer">
+        <button class="nav-btn" onclick="showSection('m7')">← Módulo 07</button>
+        <button class="nav-btn primary" onclick="showSection('overview')" style="background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.3);color:#FF6B35;">✦ Curso Completo!</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+function showSection(id) {
+  // Hide all
+  document.querySelectorAll('.module-section').forEach(s => {
+    s.style.display = 'none';
+    s.classList.remove('visible');
+  });
+
+  // Show target
+  const target = document.getElementById(id);
+  if (target) {
+    target.style.display = 'block';
+    target.classList.add('visible');
+    window.scrollTo(0, 0);
+  }
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+
+  const navMap = {
+    'overview': 0, 'm1': 1, 'm2': 2, 'm3': 3,
+    'm4': 4, 'm5': 5, 'm6': 6, 'm7': 7, 'm8': 8
+  };
+
+  const navItems = document.querySelectorAll('.nav-item');
+  const idx = navMap[id];
+  if (navItems[idx]) navItems[idx].classList.add('active');
+}
+
+function toggleTask(el) {
+  el.classList.toggle('done');
+  el.textContent = el.classList.contains('done') ? '✓' : '';
+}
+</script>
+</body>
+</html>
